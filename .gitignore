@@ -22,3 +22,10 @@ yarn-debug.log*
 yarn-error.log*
 
 dist
+
+# Crash artifacts
+core
+core.*
+*.heapsnapshot
+report.*.json
+isolate-*.log

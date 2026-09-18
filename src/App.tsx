@@ -4,7 +4,7 @@ import './App.css';
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 import stacktapeLogoImage from './stacktape-logo.svg';
 
-const API_URL = (window as any).STP_INJECTED_ENV.VITE_API_URL;
+const API_URL = (window as any).STP_INJECTED_ENV?.VITE_API_URL || window.location.origin;
 
 function App() {
   const [postAuthor, setPostAuthor] = useState('');

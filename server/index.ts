@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'node:path';
 import { json } from 'body-parser';
 import { PrismaClient } from '@prisma/client';
 
@@ -36,6 +37,13 @@ app.post('/posts', async (req, res) => {
   }
 });
 
-app.listen(process.env.PORT, () => {
-  console.info(`Api container started. Listening on port ${process.env.PORT}`);
+const frontendPath = path.join(process.cwd(), 'dist');
+app.use(express.static(frontendPath));
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
+const port = Number(process.env.PORT || 4173);
+app.listen(port, () => {
+  console.info(`Api container started. Listening on port ${port}`);
 });

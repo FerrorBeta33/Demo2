@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "start": "STP_MAIN_DATABASE_CONNECTION_STRING=postgresql://preview:preview@127.0.0.1:5432/posts?schema=public npx prisma generate && STP_MAIN_DATABASE_CONNECTION_STRING=postgresql://preview:preview@127.0.0.1:5432/posts?schema=public npx prisma db push --skip-generate && PORT=4173 STP_MAIN_DATABASE_CONNECTION_STRING=postgresql://preview:preview@127.0.0.1:5432/posts?schema=public npm run preview:start",
+  "port": 4173,
+  "install": [
+    {
+      "name": "Node dependencies",
+      "check": "test -d node_modules",
+      "run": "npm install",
+      "inputs": ["package.json", "package-lock.json"]
+    }
+  ],
+  "services": [
+    {
+      "name": "PostgreSQL",
+      "check": "command -v pg_isready",
+      "install": "sudo apt-get update && sudo apt-get install -y postgresql",
+      "start": "sudo pg_ctlcluster 16 main start || sudo service postgresql start; sudo -u postgres psql -tc \"SELECT 1 FROM pg_roles WHERE rolname='preview'\" | grep -q 1 || sudo -u postgres psql -c \"CREATE USER preview PASSWORD 'preview';\"; sudo -u postgres psql -tc \"SELECT 1 FROM pg_database WHERE datname='posts'\" | grep -q 1 || sudo -u postgres createdb -O preview posts",
+      "ready": "pg_isready -h 127.0.0.1 -p 5432"
+    }
+  ]
+}
