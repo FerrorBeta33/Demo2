@@ -4,7 +4,31 @@ import './App.css';
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 import stacktapeLogoImage from './stacktape-logo.svg';
 
-const API_URL = (window as any).STP_INJECTED_ENV.VITE_API_URL;
+const API_URL = (window as any).STP_INJECTED_ENV?.VITE_API_URL || '';
+
+const requestJson = async (url: string, options?: RequestInit) => {
+  const response = await fetch(url, options);
+  const body = await response.text();
+  let result: any = null;
+
+  if (body) {
+    try {
+      result = JSON.parse(body);
+    } catch {
+      throw new Error('The server returned an invalid response.');
+    }
+  }
+
+  if (!response.ok) {
+    throw new Error(result?.message || 'The request could not be completed.');
+  }
+
+  if (!result) {
+    throw new Error('The server returned an empty response.');
+  }
+
+  return result;
+};
 
 type Post = {
   id: number;
@@ -29,24 +53,18 @@ function App() {
 
   const query = useQuery({
     queryKey: ['posts'],
-    queryFn: () => fetch(`${API_URL}/posts`).then((response) => response.json()),
+    queryFn: () => requestJson(`${API_URL}/posts`),
   });
 
   const mutation = useMutation({
     mutationFn: ({ id, post }: { id: number | null; post: PostForm }) =>
-      fetch(`${API_URL}/posts${id ? `/${id}` : ''}`, {
+      requestJson(`${API_URL}/posts${id ? `/${id}` : ''}`, {
         method: id ? 'PUT' : 'POST',
         body: JSON.stringify(post),
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
         },
-      }).then(async (response) => {
-        const result = await response.json();
-        if (!response.ok) {
-          throw new Error(result.message || 'Unable to save the post.');
-        }
-        return result;
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
